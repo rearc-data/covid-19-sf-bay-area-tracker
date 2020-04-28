@@ -1,6 +1,6 @@
 # San Francisco Bay Area COVID-19 Tracker
 
-The source code outlining how this product gathers, transforms, revises and publishes its datasets) is avaiable at [https://github.com/rearc-data/covid-19-sf-bay-area-tracker](https://github.com/rearc-data/covid-19-sf-bay-area-tracker).
+The source code outlining how this product gathers, transforms, revises and publishes its datasets is avaiable at [https://github.com/rearc-data/covid-19-sf-bay-area-tracker](https://github.com/rearc-data/covid-19-sf-bay-area-tracker).
 
 ## Product Description
 Daily data of the total number of COVID-19 cases in the six San Francisco Bay Area counties under "shelter in place" orders.
