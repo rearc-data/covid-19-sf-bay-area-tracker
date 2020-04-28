@@ -21,7 +21,7 @@ The dataset included with this resource features the following columns:
 ## Contact Details
 - If you find any issues with or have enhancement ideas for this product, open up a GitHub [issue](https://github.com/rearc-data/covid-19-sf-bay-area-tracker/issues) and we will gladly take a look at it. Better yet, submit a pull request. Any contributions you make are greatly appreciated :heart:.
 - If you are looking for specific open datasets currently not available on ADX, please submit a request on our project board [here](https://github.com/rearc-data/covid-datasets-aws-data-exchange/projects/1).
-- If you have questions about the source data, please contact contact the author [Andrew Roberts](https://twitter.com/andrew_roberts/).
+- If you have questions about the source data, please contact the author [Andrew Roberts](https://twitter.com/andrew_roberts/).
 - If you have any other questions or feedback, send us an email at data@rearc.io.
 
 ## About Rearc
