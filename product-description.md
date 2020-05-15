@@ -2,7 +2,7 @@
 
 The source code outlining how this product gathers, transforms, revises and publishes its datasets is available at [https://github.com/rearc-data/covid-19-sf-bay-area-tracker](https://github.com/rearc-data/covid-19-sf-bay-area-tracker).
 
-## Product Description
+## Main Overview
 Daily data of the total number of COVID-19 cases in the six San Francisco Bay Area counties under "shelter in place" orders.
 
 IMPORTANT: confirmed cases is an unreliable metric right now due to significant issues in getting tests, and delays in processing and receiving test results. Tests appear to be reserved for healthcare workers and the very sick. Different healthcare systems also have different testing abilities and turnaround times. Death rates would be a more reliable (if morbid) measure, but lag reality by 2-6 weeks. Hospitalizations would be good but this data is not currently provided by most counties. Please draw any conclusions from this data carefully.
