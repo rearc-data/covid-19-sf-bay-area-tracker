@@ -1,36 +1,77 @@
-from urllib.request import urlopen
+import os
 import boto3
+import time
+from urllib.request import urlopen
 from urllib.error import URLError, HTTPError
+from zipfile import ZipFile
+from s3_md5_compare import md5_compare
+from boto3.s3.transfer import TransferConfig
+from io import BytesIO
 
-def source_dataset(new_filename, s3_bucket, new_s3_key):
+def source_dataset():
+    source_dataset_url = 'https://docs.google.com/spreadsheets/u/1/d/1l0xahMRiLlom-7R1bHh1nWWU4DdOafShL3-8scceC3o/export?format=csv&id=1l0xahMRiLlom-7R1bHh1nWWU4DdOafShL3-8scceC3o&gid=0'
 
-	source_dataset_url = 'https://docs.google.com/spreadsheets/u/1/d/1l0xahMRiLlom-7R1bHh1nWWU4DdOafShL3-8scceC3o/export?format=csv&id=1l0xahMRiLlom-7R1bHh1nWWU4DdOafShL3-8scceC3o&gid=0'
+    response = None
+    retries = 5
+    for attempt in range(retries):
+        try:
+            response = urlopen(source_dataset_url)
+        except HTTPError as e:
+            if attempt == retries:
+                raise Exception('HTTPError: ', e.code)
+            time.sleep(0.2 * attempt)
+        except URLError as e:
+            if attempt == retries:
+                raise Exception('URLError: ', e.reason)
+            time.sleep(0.2 * attempt)
+        else:
+            break
+            
+    if response is None:
+        raise Exception('There was an issue downloading the dataset')
+            
+    dataset_name = os.getenv('DATASET_NAME')
 
-	# throws error occured if there was a problem accessing data
-	# otherwise downloads and uploads to s3
+    data_dir = '/tmp'
+    if not os.path.exists(data_dir):
+        os.mkdir(data_dir)
 
-	try:
-		response = urlopen(source_dataset_url)
+    file_location = os.path.join(data_dir, dataset_name+'.csv')
 
-	except HTTPError as e:
-		raise Exception('HTTPError: ', e.code, new_filename)
+    asset_bucket = os.getenv('ASSET_BUCKET')
+    s3 = boto3.client('s3')
+    s3_resource = boto3.resource('s3')
+    config = TransferConfig(multipart_threshold=1024*25, max_concurrency=10,
+                            multipart_chunksize=1024*25, use_threads=True)
 
-	except URLError as e:
-		raise Exception('URLError: ', e.reason, new_filename)
+    s3_uploads = []
+    asset_list = []
 
-	else:
+    obj_name = file_location.split('/', 3).pop().replace(' ', '_').lower()
+    file_location = os.path.join(data_dir, obj_name)
+    new_s3_key = dataset_name + '/dataset/' + obj_name
+    filedata = response.read()
 
-		data = response.read().decode().splitlines()
-		file_location = '/tmp/' + new_filename
+    has_changes = md5_compare(s3, asset_bucket, new_s3_key, BytesIO(filedata))
+    if has_changes:
+        s3_resource.Object(asset_bucket, new_s3_key).put(Body=filedata)
+        # sys.exit(0)
+        print('Uploaded: ' + file_location)
+    else:
+        print('No changes in: ' + file_location)
 
-		with open(file_location, 'w', encoding='utf-8') as c:
-			c.write(data[0].lower().replace(' ', '_').replace('#', '') + '\n')
-			c.write('\n'.join(row for row in data[1:]))
+    asset_source = {'Bucket': asset_bucket, 'Key': new_s3_key}
+    s3_uploads.append({'has_changes': has_changes, 'asset_source': asset_source})
 
+    count_updated_data = sum(upload['has_changes'] == True for upload in s3_uploads)
+    if count_updated_data > 0:
+        asset_list = list(map(lambda upload: upload['asset_source'], s3_uploads))
+        if len(asset_list) == 0:
+            raise Exception('Something went wrong when uploading files to s3')
 
-		# uploading new s3 dataset
+    # asset_list is returned to be used in lamdba_handler function
+    # if it is empty, lambda_handler will not republish
+    return asset_list
 
-		s3 = boto3.client('s3')
-		s3.upload_file(file_location, s3_bucket, new_s3_key)
-
-		return [{'Bucket': s3_bucket, 'Key': new_s3_key}]
+if __name__ == '__main__':
+    source_dataset()
